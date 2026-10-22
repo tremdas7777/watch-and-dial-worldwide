@@ -5,6 +5,7 @@ import {
   toPublicApiError,
   type CreateSaleInput,
 } from "@/lib/sagacepay.server";
+import { recordOrder } from "@/lib/admin-data.server";
 
 const MAX_TEXT_LENGTH = 160;
 const DOCUMENT_PATTERN = /^(?:\d{11}|\d{14})$/;
@@ -76,7 +77,7 @@ export const Route = createFileRoute("/api/sagacepay/sales")({
           const clientIpAddress = getForwardedIp(request);
           if (userAgent) tracking["clientUserAgent"] = userAgent;
           if (clientIpAddress) tracking["clientIpAddress"] = clientIpAddress;
-          const postbackUrl = getPostbackUrl();
+          const postbackUrl = await getPostbackUrl();
 
           const saleInput: CreateSaleInput = {
             customer: {
@@ -92,6 +93,20 @@ export const Route = createFileRoute("/api/sagacepay/sales")({
           };
 
           const sale = await createSagacePaySale(saleInput);
+          if (typeof sale.id === "string") {
+            try {
+              await recordOrder({
+                saleId: sale.id,
+                externalId,
+                status: typeof sale.status === "string" ? sale.status : "pending",
+                amount: typeof sale.amount === "number" ? sale.amount : 137,
+                customer: saleInput.customer,
+                rawData: sale,
+              });
+            } catch (storageError) {
+              console.warn("[SagacePay] unable to persist order", storageError);
+            }
+          }
           return Response.json({
             id: sale.id,
             status: sale.status,

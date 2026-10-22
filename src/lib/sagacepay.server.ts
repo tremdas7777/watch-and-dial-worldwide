@@ -1,9 +1,17 @@
-const SAGACEPAY_BASE_URL = (
-  process.env["SAGACEPAY_BASE_URL"] ?? "https://sagacepay.com/api"
-).replace(/\/$/, "");
+import { readSagacePaySettings } from "@/lib/admin-data.server";
+
+const DEFAULT_SAGACEPAY_BASE_URL = "https://sagacepay.com/api";
 
 export const SAGACEPAY_AMOUNT = 137;
 export const SAGACEPAY_PRODUCT_NAME = "Acesso WPP — 1 ano";
+
+export type SagacePayRuntimeConfig = {
+  apiKey: string;
+  webhookSecret: string;
+  postbackUrl?: string;
+  baseUrl: string;
+  amount: number;
+};
 
 type SagacePayErrorPayload = {
   message?: unknown;
@@ -33,12 +41,30 @@ export type SaleResponse = {
   [key: string]: unknown;
 };
 
-function getApiKey(): string {
-  const apiKey = process.env["SAGACEPAY_API_KEY"];
+export async function getSagacePayRuntimeConfig(): Promise<SagacePayRuntimeConfig> {
+  const settings = await readSagacePaySettings();
+  const apiKey = settings?.api_key?.trim() || process.env["SAGACEPAY_API_KEY"] || "";
+  const webhookSecret =
+    settings?.webhook_secret?.trim() || process.env["SAGACEPAY_WEBHOOK_SECRET"] || "";
+  const configuredPostbackUrl =
+    settings?.postback_url?.trim() || process.env["SAGACEPAY_POSTBACK_URL"]?.trim();
+  const configuredBaseUrl = process.env["SAGACEPAY_BASE_URL"] ?? DEFAULT_SAGACEPAY_BASE_URL;
+  const configuredAmount = Number(settings?.amount ?? SAGACEPAY_AMOUNT);
+
   if (!apiKey) {
     throw new SagacePayConfigError("SAGACEPAY_API_KEY não está configurada no servidor.");
   }
-  return apiKey;
+
+  return {
+    apiKey,
+    webhookSecret,
+    ...(configuredPostbackUrl ? { postbackUrl: configuredPostbackUrl } : {}),
+    baseUrl: configuredBaseUrl.replace(/\/$/, ""),
+    amount:
+      Number.isFinite(configuredAmount) && configuredAmount > 0
+        ? configuredAmount
+        : SAGACEPAY_AMOUNT,
+  };
 }
 
 export class SagacePayConfigError extends Error {
@@ -76,13 +102,17 @@ async function parseApiResponse(response: Response): Promise<SaleResponse> {
   return payload;
 }
 
-async function sagacePayRequest(path: string, init: RequestInit): Promise<SaleResponse> {
-  const response = await fetch(`${SAGACEPAY_BASE_URL}${path}`, {
+async function sagacePayRequest(
+  path: string,
+  init: RequestInit,
+  config: SagacePayRuntimeConfig,
+): Promise<SaleResponse> {
+  const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      "x-api-key": getApiKey(),
+      "x-api-key": config.apiKey,
       ...(init.headers ?? {}),
     },
   });
@@ -91,8 +121,9 @@ async function sagacePayRequest(path: string, init: RequestInit): Promise<SaleRe
 }
 
 export async function createSagacePaySale(input: CreateSaleInput): Promise<SaleResponse> {
+  const config = await getSagacePayRuntimeConfig();
   const body: Record<string, unknown> = {
-    amount: SAGACEPAY_AMOUNT,
+    amount: config.amount,
     description: SAGACEPAY_PRODUCT_NAME,
     expirationInSeconds: 86400,
     externalId: input.externalId,
@@ -106,7 +137,7 @@ export async function createSagacePaySale(input: CreateSaleInput): Promise<SaleR
       {
         description: SAGACEPAY_PRODUCT_NAME,
         quantity: 1,
-        unitPrice: SAGACEPAY_AMOUNT,
+        unitPrice: config.amount,
         tangible: false,
       },
     ],
@@ -117,26 +148,38 @@ export async function createSagacePaySale(input: CreateSaleInput): Promise<SaleR
 
   if (input.postbackUrl) body["postbackUrl"] = input.postbackUrl;
 
-  return sagacePayRequest("/sales", {
-    method: "POST",
-    headers: {
-      "idempotency-key": input.idempotencyKey,
+  return sagacePayRequest(
+    "/sales",
+    {
+      method: "POST",
+      headers: {
+        "idempotency-key": input.idempotencyKey,
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    config,
+  );
 }
 
 export async function getSagacePaySale(id: string): Promise<SaleResponse> {
-  return sagacePayRequest(`/sales/${encodeURIComponent(id)}`, { method: "GET" });
+  const config = await getSagacePayRuntimeConfig();
+  return sagacePayRequest(`/sales/${encodeURIComponent(id)}`, { method: "GET" }, config);
 }
 
-export function getWebhookSecret(): string {
-  return process.env["SAGACEPAY_WEBHOOK_SECRET"] ?? "";
+export async function getWebhookSecret(): Promise<string> {
+  try {
+    return (await getSagacePayRuntimeConfig()).webhookSecret;
+  } catch {
+    return "";
+  }
 }
 
-export function getPostbackUrl(): string | undefined {
-  const value = process.env["SAGACEPAY_POSTBACK_URL"]?.trim();
-  return value || undefined;
+export async function getPostbackUrl(): Promise<string | undefined> {
+  try {
+    return (await getSagacePayRuntimeConfig()).postbackUrl;
+  } catch {
+    return undefined;
+  }
 }
 
 export function toPublicApiError(error: unknown): { message: string; status: number } {

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getWebhookSecret } from "@/lib/sagacepay.server";
+import { recordOrder } from "@/lib/admin-data.server";
 
 const REPLAY_WINDOW_SECONDS = 300;
 
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/api/sagacepay/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = getWebhookSecret();
+        const secret = await getWebhookSecret();
         if (!secret) {
           console.error("[SagacePay] webhook secret is not configured");
           return Response.json({ error: "Webhook não configurado." }, { status: 503 });
@@ -77,8 +78,29 @@ export const Route = createFileRoute("/api/sagacepay/webhook")({
         const saleId = typeof payload.data?.id === "string" ? payload.data.id : "unknown";
         console.info(`[SagacePay] webhook received event=${event} sale=${saleId}`);
 
-        // A confirmação de pagamento é a fonte de verdade para liberar o produto.
-        // A consulta GET /sales/:id no frontend também mantém o estado visível ao cliente.
+        if (saleId !== "unknown" && payload.data) {
+          try {
+            await recordOrder({
+              saleId,
+              externalId:
+                typeof payload.data.externalId === "string" ? payload.data.externalId : undefined,
+              status:
+                typeof payload.data.status === "string"
+                  ? payload.data.status
+                  : event.replace("sale.", ""),
+              amount: typeof payload.data.amount === "number" ? payload.data.amount : 137,
+              paidAt: event === "sale.paid" ? new Date().toISOString() : undefined,
+              rawData: payload,
+            });
+          } catch (storageError) {
+            console.error("[SagacePay] unable to persist webhook order", storageError);
+            return Response.json(
+              { error: "Não foi possível registrar o webhook." },
+              { status: 500 },
+            );
+          }
+        }
+
         return Response.json({ received: true });
       },
     },

@@ -1,6 +1,7 @@
 {
   "routes": [
     { "path": "/", "title": "WPP" },
+    { "path": "/admin", "title": "Painel administrativo" },
     { "path": "/index.html", "title": "WPP" },
     { "path": "/cta.html", "title": "WPP — Checkout" },
     { "path": "/privacidad.html", "title": "Privacidade" },

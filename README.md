@@ -33,5 +33,11 @@ Antes de publicar, configure no ambiente do servidor as variáveis descritas em 
 - `SAGACEPAY_WEBHOOK_SECRET`: signing secret do webhook cadastrado no painel.
 - `SAGACEPAY_POSTBACK_URL`: URL HTTPS pública `https://seu-dominio.com/api/sagacepay/webhook`. Pode ser omitida quando o webhook padrão já estiver configurado no painel.
 - `SAGACEPAY_BASE_URL`: opcional; por padrão é `https://sagacepay.com/api`.
+- `ADMIN_PASSWORD`: senha definida por você para entrar em `/admin`. O painel usa sessão HttpOnly e não grava a senha no código.
+- `SUPABASE_SERVICE_ROLE_KEY`: chave server-only usada para persistir pedidos, status e configurações administrativas.
 
 No painel da SagacePay, cadastre o endpoint `/api/sagacepay/webhook` e use o secret correspondente. O endpoint verifica `x-sagacepay-timestamp` e `x-sagacepay-signature` com HMAC-SHA256 e rejeita requisições fora da janela de cinco minutos. Não adicione a API key ou o secret ao Git.
+
+### Painel operacional
+
+Abra `/admin` e entre com a senha definida em `ADMIN_PASSWORD`. O painel oferece visão de faturamento, ticket médio, funil de status, taxa de aprovação, receita diária, pedidos com filtros de período/status e a tela para salvar a API key, webhook secret, URL do webhook e ticket. Aplique antes a migration `supabase/migrations/202610220102_sagacepay_admin.sql` no projeto Supabase.

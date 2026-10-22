@@ -10,6 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ApiAdminAnalyticsRouteImport } from './routes/api/admin/analytics'
+import { Route as ApiAdminAuthRouteImport } from './routes/api/admin/auth'
+import { Route as ApiAdminOrdersRouteImport } from './routes/api/admin/orders'
+import { Route as ApiAdminSettingsRouteImport } from './routes/api/admin/settings'
 import { Route as ApiSagacepaySalesRouteImport } from './routes/api/sagacepay/sales'
 import { Route as ApiSagacepayWebhookRouteImport } from './routes/api/sagacepay/webhook'
 import { Route as ApiSagacepaySalesIdRouteImport } from './routes/api/sagacepay/sales.$id'
@@ -17,6 +22,31 @@ import { Route as ApiSagacepaySalesIdRouteImport } from './routes/api/sagacepay/
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAnalyticsRoute = ApiAdminAnalyticsRouteImport.update({
+  id: '/api/admin/analytics',
+  path: '/api/admin/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAuthRoute = ApiAdminAuthRouteImport.update({
+  id: '/api/admin/auth',
+  path: '/api/admin/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminOrdersRoute = ApiAdminOrdersRouteImport.update({
+  id: '/api/admin/orders',
+  path: '/api/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminSettingsRoute = ApiAdminSettingsRouteImport.update({
+  id: '/api/admin/settings',
+  path: '/api/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSagacepaySalesRoute = ApiSagacepaySalesRouteImport.update({
@@ -37,12 +67,22 @@ const ApiSagacepaySalesIdRoute = ApiSagacepaySalesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/api/admin/analytics': typeof ApiAdminAnalyticsRoute
+  '/api/admin/auth': typeof ApiAdminAuthRoute
+  '/api/admin/orders': typeof ApiAdminOrdersRoute
+  '/api/admin/settings': typeof ApiAdminSettingsRoute
   '/api/sagacepay/sales': typeof ApiSagacepaySalesRouteWithChildren
   '/api/sagacepay/webhook': typeof ApiSagacepayWebhookRoute
   '/api/sagacepay/sales/$id': typeof ApiSagacepaySalesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/api/admin/analytics': typeof ApiAdminAnalyticsRoute
+  '/api/admin/auth': typeof ApiAdminAuthRoute
+  '/api/admin/orders': typeof ApiAdminOrdersRoute
+  '/api/admin/settings': typeof ApiAdminSettingsRoute
   '/api/sagacepay/sales': typeof ApiSagacepaySalesRouteWithChildren
   '/api/sagacepay/webhook': typeof ApiSagacepayWebhookRoute
   '/api/sagacepay/sales/$id': typeof ApiSagacepaySalesIdRoute
@@ -50,6 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/api/admin/analytics': typeof ApiAdminAnalyticsRoute
+  '/api/admin/auth': typeof ApiAdminAuthRoute
+  '/api/admin/orders': typeof ApiAdminOrdersRoute
+  '/api/admin/settings': typeof ApiAdminSettingsRoute
   '/api/sagacepay/sales': typeof ApiSagacepaySalesRouteWithChildren
   '/api/sagacepay/webhook': typeof ApiSagacepayWebhookRoute
   '/api/sagacepay/sales/$id': typeof ApiSagacepaySalesIdRoute
@@ -58,18 +103,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/api/admin/analytics'
+    | '/api/admin/auth'
+    | '/api/admin/orders'
+    | '/api/admin/settings'
     | '/api/sagacepay/sales'
     | '/api/sagacepay/webhook'
     | '/api/sagacepay/sales/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/api/admin/analytics'
+    | '/api/admin/auth'
+    | '/api/admin/orders'
+    | '/api/admin/settings'
     | '/api/sagacepay/sales'
     | '/api/sagacepay/webhook'
     | '/api/sagacepay/sales/$id'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/api/admin/analytics'
+    | '/api/admin/auth'
+    | '/api/admin/orders'
+    | '/api/admin/settings'
     | '/api/sagacepay/sales'
     | '/api/sagacepay/webhook'
     | '/api/sagacepay/sales/$id'
@@ -77,6 +137,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  ApiAdminAnalyticsRoute: typeof ApiAdminAnalyticsRoute
+  ApiAdminAuthRoute: typeof ApiAdminAuthRoute
+  ApiAdminOrdersRoute: typeof ApiAdminOrdersRoute
+  ApiAdminSettingsRoute: typeof ApiAdminSettingsRoute
   ApiSagacepaySalesRoute: typeof ApiSagacepaySalesRouteWithChildren
   ApiSagacepayWebhookRoute: typeof ApiSagacepayWebhookRoute
 }
@@ -88,6 +153,41 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/analytics': {
+      id: '/api/admin/analytics'
+      path: '/api/admin/analytics'
+      fullPath: '/api/admin/analytics'
+      preLoaderRoute: typeof ApiAdminAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/auth': {
+      id: '/api/admin/auth'
+      path: '/api/admin/auth'
+      fullPath: '/api/admin/auth'
+      preLoaderRoute: typeof ApiAdminAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/orders': {
+      id: '/api/admin/orders'
+      path: '/api/admin/orders'
+      fullPath: '/api/admin/orders'
+      preLoaderRoute: typeof ApiAdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/settings': {
+      id: '/api/admin/settings'
+      path: '/api/admin/settings'
+      fullPath: '/api/admin/settings'
+      preLoaderRoute: typeof ApiAdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/sagacepay/sales': {
@@ -127,6 +227,11 @@ const ApiSagacepaySalesRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  ApiAdminAnalyticsRoute: ApiAdminAnalyticsRoute,
+  ApiAdminAuthRoute: ApiAdminAuthRoute,
+  ApiAdminOrdersRoute: ApiAdminOrdersRoute,
+  ApiAdminSettingsRoute: ApiAdminSettingsRoute,
   ApiSagacepaySalesRoute: ApiSagacepaySalesRouteWithChildren,
   ApiSagacepayWebhookRoute: ApiSagacepayWebhookRoute,
 }
