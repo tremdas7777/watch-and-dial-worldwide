@@ -10,33 +10,75 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiSagacepaySalesRouteImport } from './routes/api/sagacepay/sales'
+import { Route as ApiSagacepayWebhookRouteImport } from './routes/api/sagacepay/webhook'
+import { Route as ApiSagacepaySalesIdRouteImport } from './routes/api/sagacepay/sales.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSagacepaySalesRoute = ApiSagacepaySalesRouteImport.update({
+  id: '/api/sagacepay/sales',
+  path: '/api/sagacepay/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSagacepayWebhookRoute = ApiSagacepayWebhookRouteImport.update({
+  id: '/api/sagacepay/webhook',
+  path: '/api/sagacepay/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSagacepaySalesIdRoute = ApiSagacepaySalesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiSagacepaySalesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/sagacepay/sales': typeof ApiSagacepaySalesRouteWithChildren
+  '/api/sagacepay/webhook': typeof ApiSagacepayWebhookRoute
+  '/api/sagacepay/sales/$id': typeof ApiSagacepaySalesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/sagacepay/sales': typeof ApiSagacepaySalesRouteWithChildren
+  '/api/sagacepay/webhook': typeof ApiSagacepayWebhookRoute
+  '/api/sagacepay/sales/$id': typeof ApiSagacepaySalesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/sagacepay/sales': typeof ApiSagacepaySalesRouteWithChildren
+  '/api/sagacepay/webhook': typeof ApiSagacepayWebhookRoute
+  '/api/sagacepay/sales/$id': typeof ApiSagacepaySalesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/api/sagacepay/sales'
+    | '/api/sagacepay/webhook'
+    | '/api/sagacepay/sales/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/api/sagacepay/sales'
+    | '/api/sagacepay/webhook'
+    | '/api/sagacepay/sales/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/sagacepay/sales'
+    | '/api/sagacepay/webhook'
+    | '/api/sagacepay/sales/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiSagacepaySalesRoute: typeof ApiSagacepaySalesRouteWithChildren
+  ApiSagacepayWebhookRoute: typeof ApiSagacepayWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +90,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/sagacepay/sales': {
+      id: '/api/sagacepay/sales'
+      path: '/api/sagacepay/sales'
+      fullPath: '/api/sagacepay/sales'
+      preLoaderRoute: typeof ApiSagacepaySalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sagacepay/webhook': {
+      id: '/api/sagacepay/webhook'
+      path: '/api/sagacepay/webhook'
+      fullPath: '/api/sagacepay/webhook'
+      preLoaderRoute: typeof ApiSagacepayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sagacepay/sales/$id': {
+      id: '/api/sagacepay/sales/$id'
+      path: '/$id'
+      fullPath: '/api/sagacepay/sales/$id'
+      preLoaderRoute: typeof ApiSagacepaySalesIdRouteImport
+      parentRoute: typeof ApiSagacepaySalesRoute
+    }
   }
 }
 
+interface ApiSagacepaySalesRouteChildren {
+  ApiSagacepaySalesIdRoute: typeof ApiSagacepaySalesIdRoute
+}
+
+const ApiSagacepaySalesRouteChildren: ApiSagacepaySalesRouteChildren = {
+  ApiSagacepaySalesIdRoute: ApiSagacepaySalesIdRoute,
+}
+
+const ApiSagacepaySalesRouteWithChildren =
+  ApiSagacepaySalesRoute._addFileChildren(ApiSagacepaySalesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiSagacepaySalesRoute: ApiSagacepaySalesRouteWithChildren,
+  ApiSagacepayWebhookRoute: ApiSagacepayWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
